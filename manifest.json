@@ -1,5 +1,5 @@
 {
-  "name": "Halal & Vegan Beauty Lens",
+  "name": "Halal &amp; Vegan Beauty Lens",
   "short_name": "BeautyLens",
   "start_url": "./index.html",
   "display": "standalone",
@@ -16,5 +16,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "halal-vegan-beauty-lens",
+  "description": "Scan and analyze cosmetic ingredients for Halal, Vegan, Alcohol, and Pork content instantly."
 }
