@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Halal &amp; Vegan Beauty Lens",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "BeautyLens",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "app.web.halalvegan.twa",
+  "description": "Scan and analyze cosmetic ingredients for Halal, Vegan, Alcohol, and Pork content instantly."
+}

@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Halal & Vegan Beauty Lens</title>
+    <!-- Manifest & Theme Color for Play Store / PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#022c22">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Tesseract.js CDN for client-side OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#FAF4E3',
+                            300: '#E6C875',
+                            400: '#D4AF37',
+                            500: '#AA820A',
+                            600: '#856404'
+                        },
+                        emerald: {
+                            800: '#064E3B',
+                            900: '#022C22',
+                            950: '#011C15'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #011C15;
+            color: #FAF4E3;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #FFF3B0 50%, #AA820A 100%);
+        }
+        .gold-text {
+            background: linear-gradient(135deg, #FFF3B0 0%, #D4AF37 50%, #E6C875 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glass-panel {
+            background: rgba(2, 44, 34, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+        }
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            box-shadow: 0 0 15px #D4AF37;
+            animation: scan 2.2s ease-in-out infinite alternate;
+        }
+        @keyframes scan {
+            0% { top: 5%; }
+            100% { top: 90%; }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #022C22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-20 select-none">
+
+    <header class="sticky top-0 z-40 glass-panel border-b border-gold-400/30 px-4 py-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full gold-gradient flex items-center justify-center text-emerald-950 font-bold text-lg shadow-md">
+                <i class="fa-solid font-serif">✦</i>
+            </div>
+            <div>
+                <h1 class="font-serif text-lg font-bold tracking-wide gold-text leading-none">Halal & Vegan</h1>
+                <p class="text-[9px] text-gold-300 tracking-widest uppercase">Beauty Lens</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <div class="relative">
+                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-emerald-900/80 text-gold-300 border border-gold-400/40 text-xs rounded-lg px-2 py-1 focus:outline-none focus:border-gold-400">
+                    <option value="en">English (EN)</option>
+                    <option value="id">Bahasa Indonesia (ID)</option>
+                    <option value="ms">Bahasa Melayu (MS)</option>
+                    <option value="ja">日本語 (JA)</option>
+                    <option value="zh">中文 (ZH)</option>
+                    <option value="ko">한국어 (KO)</option>
+                    <option value="es">Español (ES)</option>
+                    <option value="pt">Português (PT)</option>
+                </select>
+            </div>
+            <button onclick="shareApp()" class="bg-emerald-900 border border-gold-400/50 text-gold-300 text-xs p-1.5 rounded-lg flex items-center justify-center hover:bg-gold-400 hover:text-emerald-950 transition" title="Share App">
+                <i class="fa-solid fa-share-nodes text-sm"></i>
+            </button>
+            <button onclick="openProModal()" id="proBadge" class="bg-emerald-900 border border-gold-400 text-gold-300 text-xs px-2.5 py-1 rounded-full flex items-center space-x-1 shadow hover:bg-gold-400 hover:text-emerald-950 transition">
+                <i class="fa-solid fa-crown text-gold-400" id="crownIcon"></i>
+                <span id="proStatusText" class="font-semibold">FREE</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-lg w-full mx-auto p-4 space-y-5">
+
+        <section id="tab-scan" class="tab-content space-y-4">
+            
+            <div class="glass-panel rounded-2xl p-3 border border-gold-400/30 space-y-2">
+                <label class="block text-xs text-gold-300 font-semibold flex items-center justify-between">
+                    <span><i class="fa-solid fa-magnifying-glass mr-1 text-gold-400"></i> Direct Ingredient Search</span>
+                    <span class="text-[10px] text-gold-300/60 font-normal">Instant Lookup</span>
+                </label>
+                <div class="flex space-x-2">
+                    <input type="text" id="directSearchInput" placeholder="e.g. Placenta, Ethanol, Glycerin..." onkeyup="if(event.key==='Enter') executeDirectSearch()" class="flex-grow bg-emerald-950 border border-gold-400/40 rounded-xl px-3 py-2 text-xs text-gold-300 placeholder-gold-300/30 focus:outline-none focus:border-gold-400">
+                    <button onclick="executeDirectSearch()" class="gold-gradient text-emerald-950 font-bold px-4 py-2 rounded-xl text-xs shadow hover:brightness-110 active:scale-95 transition">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 relative overflow-hidden text-center shadow-2xl border border-gold-400/30 space-y-3">
+                <div class="flex justify-between items-center text-xs text-gold-300 font-semibold border-b border-gold-400/20 pb-2">
+                    <span class="flex items-center"><i class="fa-solid fa-camera mr-1 text-gold-400"></i> Live Optical Label Scanner</span>
+                    <button id="toggleCameraBtn" onclick="toggleCameraStream()" class="text-[10px] bg-emerald-900 border border-gold-400/40 text-gold-300 px-2.5 py-0.5 rounded-full hover:bg-gold-400 hover:text-emerald-950 transition">
+                        Start Camera
+                    </button>
+                </div>
+
+                <div class="relative w-full h-64 bg-emerald-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border border-emerald-800">
+                    <video id="webcamVideo" autoplay playsinline muted class="hidden absolute inset-0 w-full h-full object-cover"></video>
+                    <canvas id="snapshotCanvas" class="hidden"></canvas>
+
+                    <div id="cameraPreview" class="absolute inset-0 bg-cover bg-center opacity-80 transition-all duration-300" style="background-image: url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop');"></div>
+                    <div id="scanOverlay" class="scan-line hidden"></div>
+                    
+                    <div class="absolute inset-4 border-2 border-dashed border-gold-400/60 rounded-lg pointer-events-none flex flex-col justify-between p-2 z-10">
+                        <div class="flex justify-between text-gold-300 text-xs"><span>┌</span><span>┐</span></div>
+                        <div class="text-[11px] text-gold-100 bg-emerald-950/85 px-2.5 py-1 rounded-md mx-auto backdrop-blur border border-gold-400/30">
+                            Align cosmetic ingredient label here
+                        </div>
+                        <div class="flex justify-between text-gold-300 text-xs"><span>└</span><span>┘</span></div>
+                    </div>
+
+                    <div id="ocrLoader" class="absolute inset-0 bg-emerald-950/90 backdrop-blur-sm z-20 hidden flex flex-col items-center justify-center space-y-2 p-4">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl text-gold-400"></i>
+                        <span id="ocrProgressText" class="text-xs text-gold-300 font-medium text-center">日本語・英語成分ラベルを解析中…</span>
+                        <div class="w-3/4 bg-emerald-900/80 h-2 rounded-full overflow-hidden border border-gold-400/30 mt-1">
+                            <div id="ocrProgressBar" class="bg-gold-400 h-full w-0 transition-all duration-200"></div>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-3 flex space-x-1.5 z-10">
+                        <label class="bg-emerald-900/90 text-gold-300 border border-gold-400/50 text-[11px] px-2 py-1.5 rounded-lg hover:bg-gold-400 hover:text-emerald-950 transition cursor-pointer flex items-center">
+                            <i class="fa-solid fa-file-arrow-up mr-1"></i> <span data-i18n="uploadBtn">Upload</span>
+                            <input type="file" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+                        </label>
+                        <button onclick="triggerScan('sample1')" class="bg-emerald-900/90 text-green-300 border border-green-500/50 text-[11px] px-2 py-1.5 rounded-lg hover:bg-green-400 hover:text-emerald-950 transition">
+                            <i class="fa-solid fa-vial mr-1"></i> <span data-i18n="sampleSafe">Safe</span>
+                        </button>
+                        <button onclick="triggerScan('sample3')" class="bg-emerald-900/90 text-amber-300 border border-amber-500/50 text-[11px] px-2 py-1.5 rounded-lg hover:bg-amber-400 hover:text-emerald-950 transition">
+                            <i class="fa-solid fa-question mr-1"></i> <span data-i18n="sampleShubhat">Shubhat</span>
+                        </button>
+                        <button onclick="triggerScan('sample2')" class="bg-emerald-900/90 text-red-300 border border-red-500/50 text-[11px] px-2 py-1.5 rounded-lg hover:bg-red-400 hover:text-emerald-950 transition">
+                            <i class="fa-solid fa-ban mr-1"></i> <span data-i18n="sampleHaram">Haram</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="captureAndOCR()" class="w-full mt-2 py-3.5 gold-gradient text-emerald-950 font-bold rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition flex items-center justify-center space-x-2 text-base">
+                    <i class="fa-solid fa-expand text-lg"></i>
+                    <span data-i18n="scanButton">CAPTURE & OCR ANALYZE</span>
+                </button>
+            </div>
+
+            <div id="resultBox" class="glass-panel rounded-2xl p-5 space-y-4 border border-gold-400/40 shadow-2xl transition-all">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gold-400/20 pb-3 gap-2">
+                    <h2 class="font-serif text-lg font-bold text-gold-300 flex items-center">
+                        <i class="fa-solid fa-microscope mr-2 text-gold-400"></i>
+                        <span data-i18n="analysisResult">Analysis Result</span>
+                    </h2>
+                    <div class="flex items-center space-x-2" id="statusBadgesContainer">
+                        <span id="halalBadge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-900/80 text-green-300 border border-green-500/50 flex items-center">
+                            <i class="fa-solid fa-moon mr-1"></i> HALAL: SAFE
+                        </span>
+                        <span id="veganBadge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-800 text-emerald-200 border border-emerald-500/50 flex items-center">
+                            <i class="fa-solid fa-leaf mr-1"></i> VEGAN: SAFE
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 text-center" id="pictogramGrid"></div>
+
+                <div class="space-y-2 text-xs">
+                    <h3 class="font-semibold text-gold-300 uppercase tracking-wider text-[11px]" data-i18n="detectedIngredients">Detected Key Ingredients</h3>
+                    <div id="ingredientList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Shubhat Action Guidance Container -->
+                <div id="shubhatGuidanceBox" class="hidden bg-amber-950/80 border border-amber-500/50 p-3 rounded-xl space-y-1 text-xs">
+                    <div class="font-bold text-amber-300 flex items-center space-x-1">
+                        <i class="fa-solid fa-compass text-amber-400"></i>
+                        <span>Shubhat Action Guidance</span>
+                    </div>
+                    <p id="shubhatGuidanceText" class="text-amber-100/90 text-xs leading-relaxed">
+                        ※ この商品には由来が特定できない成分が含まれています。パッケージ裏面に『100% Botanical』や『Vegan』表記があるか、またはハラール認証マークの有無をご確認ください。
+                    </p>
+                </div>
+
+                <div class="bg-emerald-900/60 p-3 rounded-xl border border-gold-400/20 space-y-1 text-xs">
+                    <div class="font-bold text-gold-300 flex items-center space-x-1">
+                        <i class="fa-solid fa-layer-group text-gold-400"></i>
+                        <span data-i18n="usageOrderTitle">Recommended Application Step</span>
+                    </div>
+                    <p id="usageOrderText" class="text-emerald-100/90 text-xs leading-relaxed">
+                        Step 2: Apply after facial toner/cleanser. Gentle patting onto skin recommended.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-guide" class="tab-content space-y-4 hidden">
+            <div class="glass-panel rounded-2xl p-4 border border-gold-400/30 space-y-3">
+                <div class="flex justify-between items-center border-b border-gold-400/20 pb-2">
+                    <h2 class="font-serif text-base font-bold gold-text flex items-center">
+                        <i class="fa-solid fa-book-medical mr-2 text-gold-400"></i>
+                        <span data-i18n="dictTitle">Halal & Vegan Cosmetic Standard</span>
+                    </h2>
+                </div>
+                <div class="relative">
+                    <input type="text" id="dictSearchInput" onkeyup="filterDict()" placeholder="Search ingredient name..." class="w-full bg-emerald-950 border border-gold-400/40 rounded-xl px-3 py-2 text-xs text-gold-300 placeholder-gold-300/30 focus:outline-none focus:border-gold-400">
+                </div>
+                <div id="dictListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+            </div>
+        </section>
+
+        <section id="tab-calc" class="tab-content space-y-4 hidden">
+            <div class="glass-panel rounded-2xl p-4 border border-gold-400/30 space-y-3">
+                <div class="flex justify-between items-center border-b border-gold-400/20 pb-2">
+                    <h2 class="font-serif text-base font-bold gold-text flex items-center">
+                        <i class="fa-solid fa-receipt mr-2 text-gold-400"></i>
+                        <span data-i18n="taxFreeCalcTitle">Tax-Free Shopping List</span>
+                    </h2>
+                    <span class="text-[10px] text-gold-300/70" data-i18n="japanTaxStandard">Japan 10%/8% Tax</span>
+                </div>
+
+                <div class="space-y-2 bg-emerald-950/60 p-3 rounded-xl border border-emerald-800">
+                    <input type="text" id="itemTitleInput" placeholder="Cosmetic Name (e.g. Cleansing Foam)" class="w-full bg-emerald-900 border border-gold-400/30 rounded-lg px-2.5 py-1.5 text-xs text-gold-300 focus:outline-none">
+                    <div class="flex space-x-2">
+                        <input type="number" id="itemPriceInput" placeholder="Price (¥ JPY)" class="flex-grow bg-emerald-900 border border-gold-400/30 rounded-lg px-2.5 py-1.5 text-xs text-gold-300 focus:outline-none">
+                        <select id="taxRateSelect" class="bg-emerald-900 border border-gold-400/30 text-xs text-gold-300 rounded-lg px-2">
+                            <option value="0.10">10% Standard</option>
+                            <option value="0.08">8% Reduced</option>
+                        </select>
+                    </div>
+                    <button onclick="addShoppingItem()" class="w-full py-2 gold-gradient text-emerald-950 font-bold rounded-lg text-xs shadow hover:brightness-110 active:scale-95 transition">
+                        <i class="fa-solid fa-plus mr-1"></i> <span data-i18n="addItemBtn">Add to Duty Free List</span>
+                    </button>
+                    <div id="proListLimitNotice" class="text-[10px] text-gold-300/60 text-center">Free Version: Up to 3 items limit</div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="text-xs font-semibold text-gold-300" data-i18n="savedListTitle">Saved Items</h3>
+                    <div id="shoppingListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+                </div>
+
+                <div class="border-t border-gold-400/20 pt-3 space-y-1 text-xs">
+                    <div class="flex justify-between text-emerald-100/70">
+                        <span data-i18n="subtotalExclTax">Subtotal (Tax Excl.):</span>
+                        <span id="subtotalVal">¥0</span>
+                    </div>
+                    <div class="flex justify-between text-green-400 font-medium">
+                        <span data-i18n="taxSaved">Tax Exemption Saved:</span>
+                        <span id="taxSavedVal">¥0</span>
+                    </div>
+                    <div class="flex justify-between text-gold-300 font-bold text-sm border-t border-gold-400/20 pt-1">
+                        <span data-i18n="totalPayable">Duty-Free Total Amount:</span>
+                        <span id="totalVal">¥0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="haramAlertModal" class="fixed inset-0 bg-red-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-emerald-950 max-w-sm w-full rounded-2xl p-6 space-y-4 border-2 border-red-500 relative shadow-2xl">
+            <button onclick="closeModal('haramAlertModal')" class="absolute top-4 right-4 text-red-300 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="text-center space-y-3">
+                <div class="w-16 h-16 bg-red-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl shadow-lg border-2 border-amber-300 animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold text-red-400 tracking-wide">CRITICAL HARAM ALERT</h3>
+                <p class="text-xs text-red-100 leading-relaxed">
+                    Non-permissible or prohibited ingredients have been detected in this cosmetic formulation.
+                </p>
+            </div>
+            <div id="haramViolationDetails" class="bg-red-900/50 p-3 rounded-xl border border-red-500/40 space-y-2 text-xs"></div>
+            <button onclick="closeModal('haramAlertModal')" class="w-full py-3 bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition text-xs tracking-wider uppercase">
+                Acknowledge & View Analysis
+            </button>
+        </div>
+    </div>
+
+    <div id="proModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-sm w-full rounded-2xl p-6 space-y-4 border border-gold-400 relative">
+            <button onclick="closeProModal()" class="absolute top-4 right-4 text-gold-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 gold-gradient rounded-full mx-auto flex items-center justify-center text-emerald-950 text-xl font-bold shadow-lg">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold gold-text" data-i18n="proModalTitle">Unlock Full PRO Privilege</h3>
+                <p class="text-xs text-emerald-100/80 leading-relaxed" data-i18n="proModalDesc">
+                    Enter your secret privilege key (LUMINA) to unlock offline ingredient analysis, duty-free shopping list unlimited storage, and disable banner advertisements.
+                </p>
+            </div>
+            <div class="space-y-3 pt-2">
+                <label class="block text-xs text-gold-300 font-semibold" data-i18n="enterPasscode">Enter Secret Privilege Key:</label>
+                <input type="text" id="proCodeInput" placeholder="Enter key (Hint: LUMINA)" class="w-full bg-emerald-950 border border-gold-400 rounded-xl px-4 py-2.5 text-center text-sm font-mono tracking-widest text-gold-300 placeholder-gold-300/30 focus:outline-none focus:border-gold-400 uppercase">
+                <button onclick="verifyProCode()" class="w-full py-3 gold-gradient text-emerald-950 font-bold rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition text-sm">
+                    <span data-i18n="verifyCodeBtn">AUTHENTICATE & UNLOCK</span>
+                </button>
+                <div id="proCodeMsg" class="text-center text-xs hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal for Google Play Store Policy Compliance -->
+    <div id="privacyModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-sm w-full rounded-2xl p-5 space-y-3 border border-gold-400/40 relative max-h-[80vh] overflow-y-auto text-xs">
+            <button onclick="closeModal('privacyModal')" class="absolute top-3 right-3 text-gold-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="font-serif text-base font-bold gold-text flex items-center">
+                <i class="fa-solid fa-shield-halved mr-2 text-gold-400"></i> Privacy Policy & Data Safety
+            </h3>
+            <div class="space-y-2 text-emerald-100/80 text-[11px] leading-relaxed">
+                <p><strong>1. Camera & Image Data:</strong> Captured images or uploaded product labels are processed locally on your device via client-side OCR (Tesseract.js). No personal image data is transferred to external server storage.</p>
+                <p><strong>2. Local Storage:</strong> Saved tax-free shopping items and PRO status settings are stored strictly in your browser's local storage (`localStorage`). You can wipe this data anytime using the Reset button below.</p>
+                <p><strong>3. Advertising:</strong> Ad placeholders simulate standard mobile advertisement banners. No sensitive user tracking or identifying data is gathered.</p>
+            </div>
+            <div class="border-t border-gold-400/20 pt-2 flex justify-between items-center">
+                <button onclick="resetAppLocalData()" class="text-red-400 hover:text-red-300 text-[10px] underline flex items-center">
+                    <i class="fa-solid fa-trash-arrow-up mr-1"></i> Reset Local App Data
+                </button>
+                <button onclick="closeModal('privacyModal')" class="bg-emerald-900 border border-gold-400/40 text-gold-300 px-3 py-1 rounded-lg text-xs hover:bg-gold-400 hover:text-emerald-950 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="interstitialAdModal" class="fixed inset-0 bg-black/90 backdrop-blur-lg z-50 hidden flex flex-col justify-between p-6">
+        <div class="flex justify-between items-center border-b border-gold-400/20 pb-3">
+            <span class="text-xs text-gold-300/70 uppercase tracking-widest">Advertisement</span>
+            <button onclick="closeModal('interstitialAdModal')" class="bg-emerald-900 border border-gold-400/50 text-gold-300 px-3 py-1 rounded-full text-xs font-bold flex items-center hover:bg-gold-400 hover:text-emerald-950 transition">
+                <span class="mr-1">CLOSE</span> <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="my-auto text-center space-y-4 max-w-xs mx-auto">
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-gold-500 to-amber-200 flex items-center justify-center text-emerald-950 text-4xl shadow-2xl">
+                <i class="fa-solid fa-gem"></i>
+            </div>
+            <h2 class="font-serif text-2xl font-bold gold-text">Tokyo Ginza Organic Spa</h2>
+            <p class="text-xs text-emerald-100/80 leading-relaxed">
+                100% Halal Certified Organic Facial Treatment & VIP Private Room in Tokyo. Special 20% Discount for App Users.
+            </p>
+        </div>
+        <div class="text-center text-[10px] text-emerald-100/40">
+            AdMob Interstitial Simulation • Tap CLOSE above
+        </div>
+    </div>
+
+    <footer class="max-w-lg mx-auto px-4 py-2 text-[9px] text-emerald-100/50 text-center leading-normal space-y-2">
+        <div class="flex justify-center items-center space-x-3 text-[10px] text-gold-300/80 border-t border-emerald-900/80 pt-2">
+            <button onclick="shareApp()" class="hover:underline flex items-center text-gold-300 font-semibold">
+                <i class="fa-solid fa-share-nodes mr-1"></i> Share App
+            </button>
+            <span>•</span>
+            <button onclick="openModal('privacyModal')" class="hover:underline flex items-center">
+                <i class="fa-solid fa-user-shield mr-1"></i> Privacy Policy
+            </button>
+            <span>•</span>
+            <button onclick="openModal('proModal')" class="hover:underline flex items-center">
+                <i class="fa-solid fa-key mr-1"></i> PRO Activation
+            </button>
+        </div>
+        <div class="space-y-1.5 text-emerald-100/60">
+            <p id="disclaimerText">
+                ※ 本アプリは宗教的授与・認証機関の代行を行うものではなく、全成分表記の自動解析結果に基づく一般的な情報提供ツールです。最終的なご判断はご自身の基準で行ってください。※ 本アプリは医療機器ではなく、皮膚疾患やアレルギーの診断・治療・予防を目的としたものではありません。※ 本アプリの利用に伴ういかなるトラブルや損害についても、開発者は責任を負いません（無保証での提供となります）。
+            </p>
+            <p class="italic text-[8.5px] text-emerald-100/40 border-t border-emerald-900/40 pt-1">
+                * This app is provided 'as is' without warranty of any kind. The developer assumes no responsibility or liability for any direct or indirect damages or data loss arising from the use of this app.
+            </p>
+        </div>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 right-0 glass-panel border-t border-gold-400/30 px-6 py-2 z-40">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center space-y-1 text-gold-400 transition">
+                <i class="fa-solid fa-camera text-base"></i>
+                <span class="text-[10px] font-medium" data-i18n="tabScanner">Scanner</span>
+            </button>
+            <button onclick="switchTab('guide')" id="nav-guide" class="flex flex-col items-center space-y-1 text-emerald-100/60 hover:text-gold-300 transition">
+                <i class="fa-solid fa-book-medical text-base"></i>
+                <span class="text-[10px] font-medium" data-i18n="tabDictionary">Dictionary</span>
+            </button>
+            <button onclick="switchTab('calc')" id="nav-calc" class="flex flex-col items-center space-y-1 text-emerald-100/60 hover:text-gold-300 transition">
+                <i class="fa-solid fa-receipt text-base"></i>
+                <span class="text-[10px] font-medium" data-i18n="tabDutyFree">Duty Free</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        const KEYWORD_RULES = {
+            haram: ['placenta', 'porcine', 'alcohol', 'ethanol', 'pork', 'プラセンタ', '豚', '豚由来', 'エタノール', 'アルコール', 'ポーク', 'エラスチン'],
+            shubhat: ['glycerin', 'stearate', 'stearic', 'squalane', 'gelatin', 'collagen', 'tallow', 'グリセリン', 'ステアリン酸', 'スクワラン', 'ゼラチン', 'コラーゲン', 'タロウ', '脂肪酸']
+        };
+
+        const i18nData = {
+            en: {
+                scanButton: "CAPTURE & OCR ANALYZE",
+                analysisResult: "Analysis Result",
+                detectedIngredients: "Detected Key Ingredients",
+                usageOrderTitle: "Recommended Application Step",
+                dictTitle: "Halal & Vegan Cosmetic Standard",
+                taxFreeCalcTitle: "Tax-Free Shopping List",
+                japanTaxStandard: "Japan 10%/8% Tax",
+                addItemBtn: "Add to Duty Free List",
+                savedListTitle: "Saved Items",
+                subtotalExclTax: "Subtotal (Tax Excl.):",
+                taxSaved: "Tax Exemption Saved:",
+                totalPayable: "Duty-Free Total Amount:",
+                admobText: "Sponsored luxury cosmetic partners",
+                proModalTitle: "Unlock Full PRO Privilege",
+                proModalDesc: "Enter your secret privilege key (LUMINA) to unlock offline ingredient analysis, duty-free shopping list unlimited storage, and disable banner advertisements.",
+                enterPasscode: "Enter Secret Privilege Key:",
+                verifyCodeBtn: "AUTHENTICATE & UNLOCK",
+                tabScanner: "Scanner",
+                tabDictionary: "Dictionary",
+                tabDutyFree: "Duty Free",
+                uploadBtn: "Upload",
+                sampleSafe: "Safe",
+                sampleShubhat: "Shubhat",
+                sampleHaram: "Haram",
+                shubhatGuidance: "※ This product contains ingredients with unspecified origins. Check package for '100% Botanical', 'Vegan', or Halal certification logos.",
+                disclaimer: "※ This application is an automated ingredient analysis tool based on standard label declarations and does not represent an official religious certification body. Please verify with certified Halal/Vegan authorities for strict religious compliance. This app is not a medical device and is not intended to diagnose, treat, or prevent any skin or health conditions."
+            },
+            id: {
+                scanButton: "AMBIL FOTO & ANALISIS OCR",
+                analysisResult: "Hasil Analisis",
+                detectedIngredients: "Bahan Utama Terdeteksi",
+                usageOrderTitle: "Langkah Penggunaan",
+                dictTitle: "Kamus Kosmetik Halal & Vegan",
+                taxFreeCalcTitle: "Daftar Belanja Bebas Pajak",
+                japanTaxStandard: "Pajak Jepang 10%/8%",
+                addItemBtn: "Tambah ke Daftar Bebas Pajak",
+                savedListTitle: "Item Tersimpan",
+                subtotalExclTax: "Subtotal (Sblm Pajak):",
+                taxSaved: "Penghematan Pajak:",
+                totalPayable: "Total Bayar Bebas Pajak:",
+                admobText: "Mitra kosmetik mewah bersponsor",
+                proModalTitle: "Buka Akses Penuh PRO",
+                proModalDesc: "Masukkan kunci rahasia (LUMINA) untuk mengaktifkan database offline, penyimpanan daftar belanja tanpa batas, dan menghapus iklan.",
+                enterPasscode: "Masukkan Kunci Rahasia:",
+                verifyCodeBtn: "VERIFIKASI & BUKAKAN",
+                tabScanner: "Pemindai",
+                tabDictionary: "Kamus",
+                tabDutyFree: "Bebas Pajak",
+                uploadBtn: "Unggah",
+                sampleSafe: "Aman",
+                sampleShubhat: "Syubhat",
+                sampleHaram: "Haram",
+                shubhatGuidance: "※ Produk ini mengandung bahan dengan asal yang tidak terperinci. Periksa kemasan untuk label '100% Botanical', 'Vegan', atau logo sertifikasi Halal.",
+                disclaimer: "※ Aplikasi ini adalah alat analisis bahan otomatis dan bukan lembaga sertifikasi agama resmi. Mohon konfirmasi ke otoritas Halal/Vegan resmi. Aplikasi ini bukan perangkat medis."
+            },
+            ms: {
+                scanButton: "AMBIL GAMBAR & ANALISIS OCR",
+                analysisResult: "Keputusan Analisis",
+                detectedIngredients: "Bahan Utama Dikesan",
+                usageOrderTitle: "Langkah Penggunaan",
+                dictTitle: "Kamus Kosmetik Halal & Vegan",
+                taxFreeCalcTitle: "Senarai Membeli-belah Bebas Cukai",
+                japanTaxStandard: "Cukai Jepun 10%/8%",
+                addItemBtn: "Tambah ke Senarai Bebas Cukai",
+                savedListTitle: "Item Disimpan",
+                subtotalExclTax: "Subjumlah (Tanpa Cukai):",
+                taxSaved: "Penjimatan Cukai:",
+                totalPayable: "Jumlah Bebas Cukai:",
+                admobText: "Rakan kongsi kosmetik mewah ditaja",
+                proModalTitle: "Buka Keahlian PRO",
+                proModalDesc: "Masukkan kod laluan (LUMINA) untuk mengaktifkan pangkalan data luar talian, simpanan senarai tanpa had, dan memadam iklan.",
+                enterPasscode: "Masukkan Kod Rahsia:",
+                verifyCodeBtn: "PENGESAHAN & BUKA",
+                tabScanner: "Pengimbas",
+                tabDictionary: "Kamus",
+                tabDutyFree: "Bebas Cukai",
+                uploadBtn: "Muat naik",
+                sampleSafe: "Selamat",
+                sampleShubhat: "Syubhat",
+                sampleHaram: "Haram",
+                shubhatGuidance: "※ Produk ini mengandungi ramuan yang sumbernya tidak terperinci. Sila semak pembungkusan untuk label '100% Botanical', 'Vegan', atau logo pengesahan Halal.",
+                disclaimer: "※ Aplikasi ini adalah alat analisis bahan automatik dan bukan badan pensijilan agama rasmi. Sila sahkan dengan pihak berkuasa Halal/Vegan. Aplikasi ini bukan peranti perubatan."
+            },
+            ja: {
+                scanButton: "コスメ成分ラベルをスキャン",
+                analysisResult: "解析判定結果",
+                detectedIngredients: "検出された主要成分",
+                usageOrderTitle: "推奨スキンケア使用手順",
+                dictTitle: "ハラール＆ヴィーガンコスメ基準辞典",
+                taxFreeCalcTitle: "免税買い物計算リスト",
+                japanTaxStandard: "日本免税 10%/8%",
+                addItemBtn: "免税リストに追加",
+                savedListTitle: "保存済みアイテム",
+                subtotalExclTax: "小計（税抜）:",
+                taxSaved: "免税節約額:",
+                totalPayable: "免税適用 合計支払額:",
+                admobText: "スポンサー提供の高級コスメパートナー",
+                proModalTitle: "PRO特典機能の完全解放",
+                proModalDesc: "特典コード（合言葉: LUMINA）を入力すると、広告非表示、オフライン成分データベース、免税リストの無制限保存機能が永久アンロックされます。",
+                enterPasscode: "特典コード（合言葉）を入力:",
+                verifyCodeBtn: "コード認証してPRO解放",
+                tabScanner: "成分スキャナー",
+                tabDictionary: "成分辞典",
+                tabDutyFree: "免税計算機",
+                uploadBtn: "画像選択",
+                sampleSafe: "安全例",
+                sampleShubhat: "疑わしい例",
+                sampleHaram: "ハラーム例",
+                shubhatGuidance: "※ この商品には由来が特定できない成分が含まれています。パッケージ裏面に『100% Botanical』や『Vegan』表記があるか、またはハラール認証マークの有無をご確認ください。",
+                disclaimer: "※ 本アプリは宗教的授与・認証機関の代行を行うものではなく、全成分表記の自動解析結果に基づく一般的な情報提供ツールです。最終的なご判断はご自身の基準で行ってください。※ 本アプリは医療機器ではなく、皮膚疾患やアレルギーの診断・治療・予防を目的としたものではありません。"
+            },
+            zh: {
+                scanButton: "扫描化妆品成分标签",
+                analysisResult: "成分分析结果",
+                detectedIngredients: "检测到的主要成分",
+                usageOrderTitle: "建议护肤使用顺序",
+                dictTitle: "清真与纯素化妆品成分字典",
+                taxFreeCalcTitle: "免税购物计算清单",
+                japanTaxStandard: "日本免税 10%/8%",
+                addItemBtn: "加入免税清单",
+                savedListTitle: "已保存商品",
+                subtotalExclTax: "小计（不含税）:",
+                taxSaved: "免税节省金额:",
+                totalPayable: "免税实付总额:",
+                admobText: "赞助商高级美妆合作伙伴",
+                proModalTitle: "解锁 PRO 尊享权限",
+                proModalDesc: "输入兑换码（LUMINA）即可移除广告、开启离线成分检测数据库，并享受无限次免税清单保存功能。",
+                enterPasscode: "输入专属兑换码:",
+                verifyCodeBtn: "验证并解锁 PRO",
+                tabScanner: "成分扫描",
+                tabDictionary: "美妆字典",
+                tabDutyFree: "免税计算",
+                uploadBtn: "上传图片",
+                sampleSafe: "安全",
+                sampleShubhat: "存疑",
+                sampleHaram: "违禁",
+                shubhatGuidance: "※ 本产品包含来源未明确的成分。请检查包装背面是否有“100% Botanical”、“Vegan”标识或清真认证标志。",
+                disclaimer: "※ 本应用程序为自动化成分分析工具，非官方宗教认证机构。最终购买决定请依个人宗教与饮食标准为准。※ 本应用程序非医疗器械，不具备任何皮肤疾病或过敏之诊断、治疗与予防功能。"
+            },
+            ko: {
+                scanButton: "화장품 성분 라벨 스캔",
+                analysisResult: "분석 결과",
+                detectedIngredients: "감지된 주요 성분",
+                usageOrderTitle: "권장 권장 사용 순서",
+                dictTitle: "할랄 및 비건 화장품 기준 사전",
+                taxFreeCalcTitle: "면세 쇼핑 계산 리스트",
+                japanTaxStandard: "일본 면세 10%/8%",
+                addItemBtn: "면세 리스트에 추가",
+                savedListTitle: "저장된 항목",
+                subtotalExclTax: "소계 (세금 제외):",
+                taxSaved: "면세 절약액:",
+                totalPayable: "면세 적용 합계 금액:",
+                admobText: "스폰서 제휴 럭셔리 코스메틱",
+                proModalTitle: "PRO 전용 권한 잠금 해제",
+                proModalDesc: "비밀 암호(LUMINA)를 입력하면 오프라인 성분 분석, 무제한 면세 리스트 저장 및 광고 제거 기능이 활성화됩니다.",
+                enterPasscode: "비밀 암호 입력:",
+                verifyCodeBtn: "암호 인증 및 PRO 해제",
+                tabScanner: "성분 스캐너",
+                tabDictionary: "성분 사전",
+                tabDutyFree: "면세 계산기",
+                uploadBtn: "업로드",
+                sampleSafe: "안전 예시",
+                sampleShubhat: "의심 예시",
+                sampleHaram: "금지 예시",
+                shubhatGuidance: "※ 이 제품에는 출처가 명확하지 않은 성분이 포함되어 있습니다. 패키지 뒷면의 '100% Botanical', 'Vegan' 표기 또는 할랄 인증 마크를 확인하세요.",
+                disclaimer: "※ 본 앱은 공식 종교 인증 기관이 아니며 성분 표기에 기반한 자동 분석 도구입니다. 최종 판단은 본인의 기준에 따라 진행해 주세요. 본 앱은 의료 기기가 아닙니다."
+            },
+            es: {
+                scanButton: "CAPTURAL & ANALIZAR OCR",
+                analysisResult: "Resultado del Análisis",
+                detectedIngredients: "Ingredientes Clave Detectados",
+                usageOrderTitle: "Paso de Aplicación Recomendado",
+                dictTitle: "Estándar Cosmético Halal y Vegano",
+                taxFreeCalcTitle: "Lista de Compras Libre de Impuestos",
+                japanTaxStandard: "Impuesto de Japón 10%/8%",
+                addItemBtn: "Añadir a Lista Tax-Free",
+                savedListTitle: "Artículos Guardados",
+                subtotalExclTax: "Subtotal (Sin Impuestos):",
+                taxSaved: "Ahorro Tax-Free:",
+                totalPayable: "Monto Total Tax-Free:",
+                admobText: "Patrocinadores de cosméticos de lujo",
+                proModalTitle: "Desbloquear Privilegio PRO",
+                proModalDesc: "Ingrese la clave secreta (LUMINA) para desbloquear el análisis sin conexión, almacenamiento ilimitado y eliminar anuncios.",
+                enterPasscode: "Ingrese Clave Secreta:",
+                verifyCodeBtn: "AUTENTICAR Y DESBLOQUEAR",
+                tabScanner: "Escáner",
+                tabDictionary: "Diccionario",
+                tabDutyFree: "Tax-Free",
+                uploadBtn: "Subir",
+                sampleSafe: "Seguro",
+                sampleShubhat: "Dudoso",
+                sampleHaram: "Prohibido",
+                shubhatGuidance: "※ Este producto contiene ingredientes con orígenes no especificados. Verifique si hay logos '100% Botanical', 'Vegan' o certificación Halal en el empaque.",
+                disclaimer: "※ Esta aplicación es una herramienta de análisis automatizado y no representa un organismo de certificación oficial. No es un dispositivo médico."
+            },
+            pt: {
+                scanButton: "CAPTURAR E ANALISAR OCR",
+                analysisResult: "Resultado da Análise",
+                detectedIngredients: "Ingredientes Principais Detectados",
+                usageOrderTitle: "Passo de Aplicação Recomendado",
+                dictTitle: "Padrão Cosmético Halal e Vegano",
+                taxFreeCalcTitle: "Lista de Compras Isenta de Impostos",
+                japanTaxStandard: "Imposto do Japão 10%/8%",
+                addItemBtn: "Adicionar à Lista Tax-Free",
+                savedListTitle: "Itens Salvos",
+                subtotalExclTax: "Subtotal (Sem Imposto):",
+                taxSaved: "Economia Tax-Free:",
+                totalPayable: "Valor Total Tax-Free:",
+                admobText: "Parceiros de cosméticos de luxo",
+                proModalTitle: "Desbloquear Privilégio PRO",
+                proModalDesc: "Insira a chave secreta (LUMINA) para desbloquear análise offline, armazenamento ilimitado e remover anúncios.",
+                enterPasscode: "Insira a Chave Secreta:",
+                verifyCodeBtn: "AUTENTICAR E DESBLOQUEAR",
+                tabScanner: "Scanner",
+                tabDictionary: "Dicionário",
+                tabDutyFree: "Tax-Free",
+                uploadBtn: "Enviar",
+                sampleSafe: "Seguro",
+                sampleShubhat: "Duvidoso",
+                sampleHaram: "Proibido",
+                shubhatGuidance: "※ Este produto contém ingredientes com origens não especificadas. Verifique se há selos '100% Botanical', 'Vegan' ou certificação Halal na embalagem.",
+                disclaimer: "※ Este aplicativo é uma ferramenta de análise automatizada e não representa um órgão oficial de certificação. Não é um dispositivo médico."
+            }
+        };
+
+        let currentLang = 'en';
+        let actionCount = 0;
+        let isProUser = false;
+        let shoppingItems = [];
+        let cameraStream = null;
+
+        const mockScanResults = {
+            sample1: {
+                type: 'safe',
+                halalStatus: "HALAL SAFE",
+                halalClass: "bg-green-900/90 text-green-300 border-green-500/60",
+                halalIcon: "fa-moon",
+                veganStatus: "100% VEGAN",
+                veganClass: "bg-emerald-800 text-emerald-200 border-emerald-500/60",
+                veganIcon: "fa-leaf",
+                isHaram: false,
+                pictograms: [
+                    { icon: "fa-certificate", label: "Halal Safe", color: "text-green-400" },
+                    { icon: "fa-leaf", label: "100% Vegan", color: "text-green-400" },
+                    { icon: "fa-ban-smoke", label: "Alcohol Free", color: "text-green-400" },
+                    { icon: "fa-paw", label: "Cruelty Free", color: "text-green-400" }
+                ],
+                ingredients: [
+                    { name: "Aqua (Water)", note: "Safe Base", tag: "SAFE", tagColor: "bg-emerald-950 text-emerald-300" },
+                    { name: "Glycerin (Plant derived)", note: "Vegan Hydration", tag: "PLANT", tagColor: "bg-green-950 text-green-300" },
+                    { name: "Hyaluronic Acid", note: "Safe Biotech", tag: "HALAL / VEGAN", tagColor: "bg-emerald-900 text-emerald-200" },
+                    { name: "Camellia Sinensis Extract", note: "Botanical", tag: "ORGANIC", tagColor: "bg-green-900 text-green-200" }
+                ],
+                usage: "Step 2: Apply evenly over face after cleansing. Gentle patting improves skin absorption."
+            },
+            sample2: {
+                type: 'haram',
+                halalStatus: "HARAM DETECTED",
+                halalClass: "bg-red-900/90 text-red-200 border-red-500/80 animate-pulse",
+                halalIcon: "fa-ban",
+                veganStatus: "NON-VEGAN",
+                veganClass: "bg-amber-900/90 text-amber-200 border-amber-500/80",
+                veganIcon: "fa-piggy-bank",
+                isHaram: true,
+                violations: [
+                    "⚠️ Porcine Placenta Extract (Pig Derived - HARAM & NON-VEGAN)",
+                    "⚠️ Ethanol Alcohol Denat. (High Concentration - HARAM)",
+                    "⚠️ Hydrolyzed Animal Elastin (Animal Extract - NON-VEGAN)"
+                ],
+                pictograms: [
+                    { icon: "fa-piggy-bank", label: "Pork Placenta", color: "text-red-400" },
+                    { icon: "fa-wine-bottle", label: "Contains Alcohol", color: "text-red-400" },
+                    { icon: "fa-skull-crossbones", label: "Haram Violation", color: "text-red-500" },
+                    { icon: "fa-drumstick-bite", label: "Animal Derived", color: "text-amber-400" }
+                ],
+                ingredients: [
+                    { name: "Porcine Placenta Extract", note: "Derived from Pork", tag: "HARAM (PORK)", tagColor: "bg-red-950 text-red-300 border border-red-500/50" },
+                    { name: "Ethanol (Alcohol Denat.)", note: "Solvent Alcohol", tag: "HARAM (ALCOHOL)", tagColor: "bg-red-900 text-red-200 border border-red-500/40" },
+                    { name: "Hydrolyzed Animal Elastin", note: "Cattle / Animal Fat", tag: "NON-VEGAN", tagColor: "bg-amber-950 text-amber-300 border border-amber-500/50" },
+                    { name: "Methylparaben", note: "Preservative", tag: "SYNTHETIC", tagColor: "bg-emerald-950 text-emerald-300" }
+                ],
+                usage: "Caution: Contains porcine placenta and high alcohol. Strictly non-Halal and non-Vegan."
+            },
+            sample3: {
+                type: 'shubhat',
+                halalStatus: "DOUBTFUL / SHUBHAT",
+                halalClass: "bg-amber-900/90 text-amber-300 border-amber-500/80 animate-bounce",
+                halalIcon: "fa-triangle-exclamation",
+                veganStatus: "UNKNOWN SOURCE",
+                veganClass: "bg-amber-950 text-amber-200 border-amber-500/50",
+                veganIcon: "fa-circle-question",
+                isHaram: false,
+                pictograms: [
+                    { icon: "fa-triangle-exclamation", label: "Shubhat Source", color: "text-amber-400" },
+                    { icon: "fa-magnifying-glass-question", label: "Check Origin", color: "text-amber-300" },
+                    { icon: "fa-vial-circle-check", label: "Fermentation?", color: "text-gold-300" },
+                    { icon: "fa-seedling", label: "Ask Manufacturer", color: "text-amber-200" }
+                ],
+                ingredients: [
+                    { name: "Glycerin (Source Unspecified)", note: "Animal or Plant Origin Unknown", tag: "SHUBHAT / DOUBTFUL", tagColor: "bg-amber-950 text-amber-300 border border-amber-500/50" },
+                    { name: "Stearic Acid", note: "May contain tallow/animal fat", tag: "CHECK ORIGIN", tagColor: "bg-amber-900 text-amber-200 border border-amber-500/40" },
+                    { name: "Squalane", note: "Plant olive or shark liver oil", tag: "UNKNOWN SOURCE", tagColor: "bg-amber-950 text-amber-300" },
+                    { name: "Butylene Glycol", note: "Synthetic compound", tag: "SAFE SYNTHETIC", tagColor: "bg-emerald-950 text-emerald-300" }
+                ],
+                usage: "Confirm with manufacturer whether plant or synthetic derived."
+            }
+        };
+
+        const dictionaryData = [
+            { name: "Ethanol / Alcohol Denat.", category: "Alcohol", halal: false, vegan: true, desc: "Commonly used as solvent. Haram under strict Halal rules if derived from non-permissible process." },
+            { name: "Porcine Placenta Extract", category: "Animal Derived", halal: false, vegan: false, desc: "Placenta extracted from pigs. Strictly Haram and non-Vegan." },
+            { name: "Plant-derived Glycerin", category: "Moisturizer", halal: true, vegan: true, desc: "Sourced from vegetable oils (palm, coconut). Fully Halal and Vegan." },
+            { name: "Tallow / Sodium Tallowate", category: "Fatty Acid", halal: false, vegan: false, desc: "Derived from animal fat (often pork/non-halal cattle). Non-Vegan." },
+            { name: "Hyaluronic Acid (Fermented)", category: "Moisturizer", halal: true, vegan: true, desc: "Produced via bacterial fermentation. Safe for both Halal and Vegan users." },
+            { name: "Carmine (CI 75470)", category: "Colorant", halal: false, vegan: false, desc: "Red pigment made from crushed cochineal insects. Non-Vegan and doubtful." }
+        ];
+
+        window.onload = function () {
+            if (localStorage.getItem('isProUser') === 'true') {
+                enableProFeatures(false);
+            }
+
+            const browserLang = navigator.language || navigator.userLanguage || 'en';
+            if (browserLang.startsWith('id')) currentLang = 'id';
+            else if (browserLang.startsWith('ms')) currentLang = 'ms';
+            else if (browserLang.startsWith('ja')) currentLang = 'ja';
+            else if (browserLang.startsWith('zh')) currentLang = 'zh';
+            else if (browserLang.startsWith('ko')) currentLang = 'ko';
+            else if (browserLang.startsWith('es')) currentLang = 'es';
+            else if (browserLang.startsWith('pt')) currentLang = 'pt';
+            else currentLang = 'en';
+
+            const langSelect = document.getElementById('langSelect');
+            if (langSelect) langSelect.value = currentLang;
+
+            updateI18nText();
+            renderDictionary(dictionaryData);
+            loadShoppingList();
+            triggerScan('sample1');
+        };
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        }
+
+        async function toggleCameraStream() {
+            const videoEl = document.getElementById('webcamVideo');
+            const previewEl = document.getElementById('cameraPreview');
+            const btn = document.getElementById('toggleCameraBtn');
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+                if (videoEl) videoEl.classList.add('hidden');
+                if (previewEl) previewEl.classList.remove('hidden');
+                if (btn) {
+                    btn.textContent = "Start Camera";
+                    btn.className = "text-[10px] bg-emerald-900 border border-gold-400/40 text-gold-300 px-2.5 py-0.5 rounded-full hover:bg-gold-400 hover:text-emerald-950 transition";
+                }
+            } else {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: "environment" } },
+                        audio: false
+                    });
+                    if (videoEl) {
+                        videoEl.srcObject = cameraStream;
+                        videoEl.classList.remove('hidden');
+                    }
+                    if (previewEl) previewEl.classList.add('hidden');
+                    if (btn) {
+                        btn.textContent = "Stop Camera";
+                        btn.className = "text-[10px] bg-red-900/80 border border-red-500/50 text-red-200 px-2.5 py-0.5 rounded-full hover:bg-red-800 transition";
+                    }
+                } catch (err) {
+                    alert("Camera access was restricted or unavailable. Please use photo upload or direct search bar.");
+                }
+            }
+        }
+
+        function resetAppLocalData() {
+            if (confirm("Reset all saved local data (shopping items & PRO preferences)?")) {
+                localStorage.clear();
+                shoppingItems = [];
+                isProUser = false;
+                location.reload();
+            }
+        }
+
+        async function captureAndOCR() {
+            const videoEl = document.getElementById('webcamVideo');
+            const canvas = document.getElementById('snapshotCanvas');
+            const loader = document.getElementById('ocrLoader');
+            const loaderText = document.getElementById('ocrProgressText');
+            const progressBar = document.getElementById('ocrProgressBar');
+
+            if (cameraStream && videoEl && !videoEl.paused) {
+                canvas.width = videoEl.videoWidth || 640;
+                canvas.height = videoEl.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                
+                if (loader) loader.classList.remove('hidden');
+                if (loaderText) loaderText.textContent = "日本語・英語成分ラベルを解析中…";
+                if (progressBar) progressBar.style.width = "0%";
+
+                try {
+                    const result = await Tesseract.recognize(canvas, 'eng+jpn', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                const pct = Math.round(m.progress * 100);
+                                if (loaderText) loaderText.textContent = `日本語・英語成分解析中... ${pct}%`;
+                                if (progressBar) progressBar.style.width = `${pct}%`;
+                            }
+                        }
+                    });
+                    parseOCRTextAndRender(result.data.text);
+                } catch (e) {
+                    triggerScan('random');
+                } finally {
+                    if (loader) loader.classList.add('hidden');
+                }
+            } else {
+                triggerScan('random');
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const loader = document.getElementById('ocrLoader');
+            const loaderText = document.getElementById('ocrProgressText');
+            const progressBar = document.getElementById('ocrProgressBar');
+
+            if (loader) loader.classList.remove('hidden');
+            if (loaderText) loaderText.textContent = "日本語・英語成分ラベルを解析中…";
+            if (progressBar) progressBar.style.width = "0%";
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const result = await Tesseract.recognize(e.target.result, 'eng+jpn', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                const pct = Math.round(m.progress * 100);
+                                if (loaderText) loaderText.textContent = `日本語・英語成分解析中... ${pct}%`;
+                                if (progressBar) progressBar.style.width = `${pct}%`;
+                            }
+                        }
+                    });
+                    parseOCRTextAndRender(result.data.text);
+                } catch (err) {
+                    triggerScan('random');
+                } finally {
+                    if (loader) loader.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function analyzeTextQuery(text) {
+            const lower = text.toLowerCase();
+            const isHaram = KEYWORD_RULES.haram.some(kw => lower.includes(kw));
+            const isShubhat = KEYWORD_RULES.shubhat.some(kw => lower.includes(kw));
+
+            if (isHaram) return 'sample2';
+            if (isShubhat) return 'sample3';
+            return 'sample1';
+        }
+
+        function parseOCRTextAndRender(ocrText) {
+            const targetSample = analyzeTextQuery(ocrText);
+            triggerScan(targetSample);
+        }
+
+        function executeDirectSearch() {
+            const input = document.getElementById('directSearchInput');
+            if (!input) return;
+            const query = input.value.trim();
+            if (!query) return;
+
+            const targetSample = analyzeTextQuery(query);
+            triggerScan(targetSample);
+            registerUserAction();
+        }
+
+        function registerUserAction() {
+            if (isProUser) return;
+            actionCount++;
+            if (actionCount >= 3) {
+                actionCount = 0;
+                openModal('interstitialAdModal');
+            }
+        }
+
+        function changeLanguage(langKey) {
+            currentLang = i18nData[langKey] ? langKey : 'en';
+            updateI18nText();
+            registerUserAction();
+        }
+
+        function updateI18nText() {
+            const langDict = i18nData[currentLang] || i18nData['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (langDict[key]) el.textContent = langDict[key];
+            });
+            const disclaimer = document.getElementById('disclaimerText');
+            if (disclaimer) disclaimer.textContent = langDict['disclaimer'];
+
+            const shubhatGuidanceText = document.getElementById('shubhatGuidanceText');
+            if (shubhatGuidanceText) shubhatGuidanceText.textContent = langDict['shubhatGuidance'];
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            ['scan', 'guide', 'calc'].forEach(t => {
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.className = (t === tabName)
+                        ? "flex flex-col items-center space-y-1 text-gold-400 transition"
+                        : "flex flex-col items-center space-y-1 text-emerald-100/60 hover:text-gold-300 transition";
+                }
+            });
+            registerUserAction();
+        }
+
+        function triggerScan(sampleType) {
+            const scanOverlay = document.getElementById('scanOverlay');
+            if (scanOverlay) scanOverlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                if (scanOverlay) scanOverlay.classList.add('hidden');
+                
+                let data = mockScanResults[sampleType];
+                if (!data) {
+                    const keys = ['sample1', 'sample2', 'sample3'];
+                    data = mockScanResults[keys[Math.floor(Math.random() * keys.length)]];
+                }
+
+                const halalBadge = document.getElementById('halalBadge');
+                if (halalBadge) {
+                    halalBadge.className = `px-2.5 py-1 rounded-full text-[11px] font-bold border flex items-center ${data.halalClass}`;
+                    halalBadge.innerHTML = `<i class="fa-solid ${data.halalIcon} mr-1"></i> ${data.halalStatus}`;
+                }
+
+                const veganBadge = document.getElementById('veganBadge');
+                if (veganBadge) {
+                    veganBadge.className = `px-2.5 py-1 rounded-full text-[11px] font-bold border flex items-center ${data.veganClass}`;
+                    veganBadge.innerHTML = `<i class="fa-solid ${data.veganIcon} mr-1"></i> ${data.veganStatus}`;
+                }
+
+                if (data.isHaram) {
+                    showHaramAlert(data.violations);
+                }
+
+                const shubhatBox = document.getElementById('shubhatGuidanceBox');
+                if (shubhatBox) {
+                    if (data.type === 'shubhat') {
+                        shubhatBox.classList.remove('hidden');
+                    } else {
+                        shubhatBox.classList.add('hidden');
+                    }
+                }
+
+                const pictogramGrid = document.getElementById('pictogramGrid');
+                if (pictogramGrid) {
+                    pictogramGrid.innerHTML = data.pictograms.map(p => `
+                        <div class="bg-emerald-950/80 p-2 rounded-xl border border-gold-400/20 flex flex-col items-center justify-center space-y-1">
+                            <i class="fa-solid ${p.icon} ${p.color} text-lg"></i>
+                            <span class="text-[9px] text-emerald-100 font-medium leading-tight">${p.label}</span>
+                        </div>
+                    `).join('');
+                }
+
+                const ingredientList = document.getElementById('ingredientList');
+                if (ingredientList) {
+                    ingredientList.innerHTML = data.ingredients.map(ing => `
+                        <div class="flex justify-between items-center bg-emerald-900/40 px-2.5 py-1.5 rounded border border-emerald-800">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-emerald-100 text-xs">${ing.name}</span>
+                                <span class="text-[9px] text-emerald-100/60">${ing.note}</span>
+                            </div>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded ${ing.tagColor}">${ing.tag}</span>
+                        </div>
+                    `).join('');
+                }
+
+                const usageOrder = document.getElementById('usageOrderText');
+                if (usageOrder) usageOrder.textContent = data.usage;
+
+            }, 600);
+
+            registerUserAction();
+        }
+
+        function showHaramAlert(violations) {
+            const container = document.getElementById('haramViolationDetails');
+            if (container) {
+                container.innerHTML = violations.map(v => `
+                    <div class="text-[11px] font-semibold text-red-200 bg-red-950/80 p-2 rounded border border-red-500/50 flex items-start space-x-1.5">
+                        <span>${v}</span>
+                    </div>
+                `).join('');
+            }
+            openModal('haramAlertModal');
+        }
+
+        function renderDictionary(items) {
+            const container = document.getElementById('dictListContainer');
+            if (!container) return;
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="text-xs text-center py-4 text-emerald-100/50">No ingredients matched your search.</div>`;
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="bg-emerald-900/50 p-3 rounded-xl border border-gold-400/20 space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-gold-300">${item.name}</span>
+                        <div class="flex space-x-1">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-bold ${item.halal ? 'bg-green-900/80 text-green-300' : 'bg-red-900/80 text-red-300'}">
+                                ${item.halal ? 'HALAL' : 'NON-HALAL'}
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-bold ${item.vegan ? 'bg-emerald-800 text-emerald-200' : 'bg-amber-900/80 text-amber-300'}">
+                                ${item.vegan ? 'VEGAN' : 'NON-VEGAN'}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-emerald-100/80 leading-snug">${item.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function filterDict() {
+            const searchInput = document.getElementById('dictSearchInput');
+            if (!searchInput) return;
+            const q = searchInput.value.toLowerCase();
+            const filtered = dictionaryData.filter(d => d.name.toLowerCase().includes(q) || d.category.toLowerCase().includes(q));
+            renderDictionary(filtered);
+        }
+
+        function addShoppingItem() {
+            const nameEl = document.getElementById('itemTitleInput');
+            const priceEl = document.getElementById('itemPriceInput');
+            const taxEl = document.getElementById('taxRateSelect');
+
+            if (!nameEl || !priceEl || !taxEl) return;
+
+            const name = nameEl.value.trim();
+            const price = parseFloat(priceEl.value);
+            const taxRate = parseFloat(taxEl.value);
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert("Please enter a valid item name and price.");
+                return;
+            }
+
+            if (!isProUser && shoppingItems.length >= 3) {
+                openModal('proModal');
+                return;
+            }
+
+            shoppingItems.push({ id: Date.now(), name, price, taxRate });
+            nameEl.value = '';
+            priceEl.value = '';
+
+            saveAndRenderShoppingList();
+            registerUserAction();
+        }
+
+        function removeShoppingItem(id) {
+            shoppingItems = shoppingItems.filter(item => item.id !== id);
+            saveAndRenderShoppingList();
+        }
+
+        function saveAndRenderShoppingList() {
+            localStorage.setItem('shoppingItems', JSON.stringify(shoppingItems));
+            
+            const container = document.getElementById('shoppingListContainer');
+            if (!container) return;
+
+            if (shoppingItems.length === 0) {
+                container.innerHTML = `<div class="text-xs text-center py-3 text-emerald-100/40">List is empty. Add cosmetics to calculate tax refund.</div>`;
+            } else {
+                container.innerHTML = shoppingItems.map(item => `
+                    <div class="flex justify-between items-center bg-emerald-900/40 p-2 rounded-lg border border-gold-400/10 text-xs">
+                        <div class="space-y-0.5">
+                            <div class="font-medium text-emerald-100">${item.name}</div>
+                            <div class="text-[10px] text-gold-300/70">¥${item.price.toLocaleString()} (${(item.taxRate*100)}% Tax)</div>
+                        </div>
+                        <button onclick="removeShoppingItem(${item.id})" class="text-red-400/80 hover:text-red-300 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            let subtotal = 0;
+            let taxSaved = 0;
+
+            shoppingItems.forEach(item => {
+                subtotal += item.price;
+                taxSaved += item.price * item.taxRate;
+            });
+
+            const subtotalEl = document.getElementById('subtotalVal');
+            const taxSavedEl = document.getElementById('taxSavedVal');
+            const totalEl = document.getElementById('totalVal');
+
+            if (subtotalEl) subtotalEl.textContent = `¥${Math.round(subtotal).toLocaleString()}`;
+            if (taxSavedEl) taxSavedEl.textContent = `¥${Math.round(taxSaved).toLocaleString()}`;
+            if (totalEl) totalEl.textContent = `¥${Math.round(subtotal).toLocaleString()}`;
+        }
+
+        function loadShoppingList() {
+            const saved = localStorage.getItem('shoppingItems');
+            if (saved) {
+                try { shoppingItems = JSON.parse(saved); } catch(e) { shoppingItems = []; }
+            }
+            saveAndRenderShoppingList();
+        }
+
+        function openProModal() { openModal('proModal'); }
+        function closeProModal() {
+            closeModal('proModal');
+            const msgBox = document.getElementById('proCodeMsg');
+            if (msgBox) msgBox.classList.add('hidden');
+        }
+
+        function verifyProCode() {
+            const input = document.getElementById('proCodeInput');
+            const msgBox = document.getElementById('proCodeMsg');
+            if (!input || !msgBox) return;
+
+            const inputCode = input.value.trim().toUpperCase();
+            msgBox.classList.remove('hidden');
+
+            if (inputCode === 'LUMINA') {
+                msgBox.className = "text-center text-xs text-green-400 font-bold";
+                msgBox.textContent = "✓ Secret Code Accepted! PRO Privileges Activated.";
+                
+                setTimeout(() => {
+                    enableProFeatures(true);
+                    closeProModal();
+                }, 1000);
+            } else {
+                msgBox.className = "text-center text-xs text-red-400 font-bold";
+                msgBox.textContent = "✕ Invalid Key. Please check and try again.";
+            }
+        }
+
+        function enableProFeatures(save = true) {
+            isProUser = true;
+            if (save) localStorage.setItem('isProUser', 'true');
+
+            const statusText = document.getElementById('proStatusText');
+            const proBadge = document.getElementById('proBadge');
+            const crownIcon = document.getElementById('crownIcon');
+
+            if (statusText) {
+                statusText.textContent = "PRO";
+                statusText.className = "font-bold text-emerald-950";
+            }
+            if (proBadge) proBadge.className = "gold-gradient text-emerald-950 text-xs px-2.5 py-1 rounded-full flex items-center space-x-1 shadow";
+            if (crownIcon) crownIcon.className = "fa-solid fa-crown text-emerald-950";
+
+            const limitNotice = document.getElementById('proListLimitNotice');
+            if (limitNotice) {
+                limitNotice.textContent = "PRO: Unlimited Items Activated";
+                limitNotice.className = "text-[10px] text-green-400 font-bold";
+            }
+        }
+
+        async function shareApp() {
+            const shareData = {
+                title: 'Halal & Vegan Beauty Lens',
+                text: 'Check cosmetic ingredients instantly for Halal, Vegan & Alcohol-free status with Halal & Vegan Beauty Lens!',
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {}
+            } else {
+                const dummyInput = document.createElement('input');
+                document.body.appendChild(dummyInput);
+                dummyInput.value = `${shareData.text} ${shareData.url}`;
+                dummyInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummyInput);
+                alert("App share link copied to clipboard! (アプリ紹介リンクをコピーしました)");
+            }
+        }
+    </script>
+</body>
+</html>
